@@ -1,6 +1,5 @@
 from django import forms
 from . models import Project
-
 from teams.models import Team
 from tempus_dominus.widgets import DatePicker
 from .utils import *
@@ -29,12 +28,7 @@ class ProjectForm(forms.ModelForm):
         label=False
     )
     
-    # owner = forms.ModelChoiceField(
-    #     queryset= User.objects.filter(is_active=True),
-    #     widget=forms.Select(attrs={'class':'form-control'}),
-    #     label=False,
-    #     required=True
-    # )
+    
     
     team = forms.ModelChoiceField(
         queryset= Team.objects.all(),

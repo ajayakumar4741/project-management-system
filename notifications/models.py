@@ -5,14 +5,13 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 
 
 class NotificationManager(models.Manager):
-    def for_user(self, user):
-        return self.filter(reciepient=user)
     
-    def unread(self, user):
-        return self.for_user(user).filter(read=False)
+    
+    def unread(self):
+        return self.filter(read=False)
     
     def read(self, user):
-        return self.for_user(user).filter(read=True)
+        return self.filter(read=True)
 
 class Notification(models.Model):
     reciepient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
@@ -21,7 +20,7 @@ class Notification(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.IntegerField()
     content_object = GenericForeignKey('content_type','object_id')
-    created_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
     read = models.BooleanField(default=False)
     
     objects = NotificationManager()

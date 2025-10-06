@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from datetime import timedelta
 from teams.models import Team
 from .utils import *
 # Create your models here.
@@ -12,12 +13,20 @@ class ProjectQueryset(models.QuerySet):
     def upcomming(self):
         return self.filter(due_date__gte=timezone.now())
     
+    def due_in_two_days_or_less(self):
+        today = timezone.now().date()
+        two_days_from_today = today + timedelta(days=2)
+        return self.active().upcomming().filter(due_date__lte=two_days_from_today)
+    
 class ProjectManager(models.Manager):
     def get_queryset(self):
         return ProjectQueryset(self.model, using=self._db)
     
     def all(self):
         return self.get_queryset().active().upcomming()
+    
+    def due_in_two_days_or_less(self):
+        return self.get_queryset().active().upcomming().due_in_two_days_or_less()
 
 class Project(models.Model):
     owner = models.ForeignKey(User, models.CASCADE, related_name='projects')
