@@ -5,11 +5,14 @@ from django.dispatch import receiver
 from django.utils.timesince import timesince
 from django.utils import timezone
 from datetime import timedelta
+from phonenumber_field.modelfields import PhoneNumberField
 # Create your models here.
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     profile_picture = models.ImageField(upload_to='', blank=True, null=True)
+    job_title = models.CharField(max_length=100,null=True)
+    phone = PhoneNumberField(null=True,blank=True,unique=True)
     bio = models.TextField(blank=True)
     location = models.CharField(max_length=200, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)

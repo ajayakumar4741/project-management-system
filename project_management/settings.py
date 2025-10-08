@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'tempus_dominus',
     'crispy_forms',
     'crispy_bootstrap5',
-    'django_celery_beat'
+    'django_celery_beat',
+    'phonenumber_field',
 ]
 
 MIDDLEWARE = [
@@ -57,6 +58,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.contrib.auth.middleware.LoginRequiredMiddleware',
 ]
 
 ROOT_URLCONF = 'project_management.urls'

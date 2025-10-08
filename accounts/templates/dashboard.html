@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% block title %} {{title}} | {{block.super}} {% endblock %}
 {% load static %}
 
 
@@ -130,7 +131,7 @@
               <!-- /.card-body -->
               <div class="card-footer clearfix">
                
-                <a href="{% static './pages/examples/projects.html' %}" class="btn btn-sm btn-secondary float-right">View All Projects</a>
+                <a href="{% url 'projects:due-list' %}" class="btn btn-sm btn-secondary float-right">View All Projects</a>
               </div>
               <!-- /.card-footer -->
             </div>
@@ -232,7 +233,7 @@
               <!-- /.card-body -->
               <div class="card-footer clearfix">
                
-                <a href="{% static './pages/examples/projects.html' %}" class="btn btn-sm btn-secondary float-right">View All Projects</a>
+                <a href="{% url 'projects:list' %}" class="btn btn-sm btn-secondary float-right">View All Projects</a>
               </div>
               <!-- /.card-footer -->
             </div>
@@ -310,7 +311,7 @@
                   </div>
                   <!-- /.card-body -->
                   <div class="card-footer text-center">
-                    <a href="{% static './pages/examples/teams.html' %}">View All Users</a>
+                    <a href="{% url 'accounts:members-list' %}">View All Users</a>
                   </div>
                   <!-- /.card-footer -->
                 </div>
@@ -360,7 +361,9 @@
                     <!--/.direct-chat-messages-->
                   </div>
                   <!-- /.card-body -->
-                  
+                  <div class="card-footer text-center">
+                    <a href="{% url 'notifications:notification-list' %}">See All Notifications</a>
+                  </div>
                   <!-- /.card-footer-->
                 </div>
                 <!--/.direct-chat -->

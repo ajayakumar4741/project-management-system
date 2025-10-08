@@ -76,7 +76,7 @@ class Project(models.Model):
         elif status_value == 50:
             color = 'primary'
         else:
-            color = ''
+            color = 'secondary'
         return color
     
     @property
