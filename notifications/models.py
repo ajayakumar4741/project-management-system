@@ -7,11 +7,11 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 class NotificationManager(models.Manager):
     
     
-    def unread(self):
-        return self.filter(read=False)
+    def unread(self,user):
+        return self.filter(read=False).exclude(actor=user)
     
     def read(self, user):
-        return self.filter(read=True)
+        return self.filter(read=True).exclude(actor=user)
 
 class Notification(models.Model):
     reciepient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
@@ -35,3 +35,7 @@ class Notification(models.Model):
     @property
     def notification_time_formatted(self):
         return self.created_at.strftime('%d %b %I %M %p')
+    
+    def mark_as_read(self):
+        self.read = True
+        self.save()

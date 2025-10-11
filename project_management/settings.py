@@ -42,13 +42,17 @@ INSTALLED_APPS = [
     'tasks',
     'notifications',
     'teams',
+    'comment',
     # third party apps
     'tempus_dominus',
     'crispy_forms',
     'crispy_bootstrap5',
     'django_celery_beat',
     'phonenumber_field',
+    
 ]
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
