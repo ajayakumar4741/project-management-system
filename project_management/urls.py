@@ -23,5 +23,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('accounts.urls', namespace='accounts')),
     path('projects/', include('project_app.urls', namespace='projects')),
-    path('notifications/', include('notifications.urls', namespace='notifications'))
+    path('notifications/', include('notifications.urls', namespace='notifications')),
+    path('accounts/', include('django.contrib.auth.urls'))
 ] + static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
