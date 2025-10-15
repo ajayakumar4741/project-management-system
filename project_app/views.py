@@ -89,6 +89,7 @@ class ProjectDetailView(DetailView):
         context['page_obj'] = page_obj
         context['comments_count'] = comments.count()
         context['comment_form'] = CommentForm()
+        context['attachment_form'] = AttachmentForm()
         context['my_company_desc'] = """
         Projects Hub is a results-driven project management firm specializing in delivering complex initiatives with precision, clarity, and measurable impact. 
         We partner with organizations across industries to plan, execute, and optimize projects — from concept to completion.
@@ -98,7 +99,11 @@ class ProjectDetailView(DetailView):
     
     def post(self,request,*args,**kwargs):
         project = self.get_object()
-        if request.user in project.team.members.all():
+        if request.user not in project.team.members.all():
+            messages.warning(request, 'You are not a member...')
+            return self.get(request,*args,**kwargs)
+        
+        if 'comment_submit' in request.POST:
             form = CommentForm(request.POST)
             if form.is_valid():
                 comment = form.save(commit=False)
@@ -113,6 +118,37 @@ class ProjectDetailView(DetailView):
                 return redirect('projects:project-detail',pk=project.pk)
             else:
                 messages.warning(request, form.errors.get('comment',['An error occured...'])[0])
-        else:
-            messages.warning(request, 'You are not a member...')
+        if 'attachment_submit' in request.POST:
+            attachment_form = AttachmentForm(request.POST,request.FILES)
+            if attachment_form.is_valid():
+                attachment=attachment_form.save(commit=False)
+                attachment.project = project
+                attachment.user = request.user
+                attachment.save()
+                messages.success(request,'File Uploaded Successfully...')
+                return redirect('projects:project-detail',pk=project.pk)
+            else:
+                messages.error(request,'An error occured, please try again later...')
         return self.get(request,*args,**kwargs)
+    
+class KanbanBoardView(DetailView):
+    model = Project
+    template_name = 'projects/kanban-board.html'
+    context_object_name = 'project'
+    
+    def get_context_data(self, **kwargs):
+        context = super(KanbanBoardView, self).get_context_data(**kwargs)
+        latest_notifications = self.request.user.notifications.unread(self.request.user)
+        project = self.get_object()    
+        
+        context['latest_notifications'] = latest_notifications[:3]
+        context['notification_count'] = latest_notifications.count()
+        context['header_text'] = 'Kanban Board'
+        context['title'] = f"{project.name}'s Kanban Board"
+        context['is_kanban'] = True
+        # sepreate tasks based on status
+        context['backlog_tasks'] = project.tasks.filter(status='Backlog').upcomming()
+        context['todo_tasks'] = project.tasks.filter(status='To Do').upcomming()
+        context['inprogress_tasks'] = project.tasks.filter(status='In Progress').upcomming()
+        context['completed_tasks'] = project.tasks.filter(status='Completed').upcomming()
+        return context

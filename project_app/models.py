@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
-from datetime import timedelta
+from datetime import timedelta,datetime
 from teams.models import Team
 from .utils import *
 # Create your models here.
@@ -88,3 +88,17 @@ class Project(models.Model):
         else:
             color = 'danger'
         return color
+    
+# path for upload project
+def project_attachment_path_location(instance,filename):
+    today_date = datetime.now().strftime('%d-%m-%Y')
+    return 'attachments/%s/%s/%s' % (instance.project.name, today_date,filename)
+
+class Attachment(models.Model):
+    project = models.ForeignKey(Project, models.CASCADE, related_name='attachments')
+    user = models.ForeignKey(User, models.CASCADE, related_name='attachments')
+    file = models.FileField(upload_to=project_attachment_path_location)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f'Attachment by {self.user.username} on {self.project.name}'

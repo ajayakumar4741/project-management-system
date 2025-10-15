@@ -1,5 +1,5 @@
 from django import forms
-from . models import Project
+from . models import Project,Attachment
 from teams.models import Team
 from tempus_dominus.widgets import DatePicker
 from .utils import *
@@ -69,3 +69,9 @@ class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
         fields = ['name','team','description','client_company','priority','status','start_date','due_date','total_amount','amount_spent','estimated_duration']
+        
+class AttachmentForm(forms.ModelForm):
+    
+    class Meta:
+        model = Attachment
+        fields = ['file']

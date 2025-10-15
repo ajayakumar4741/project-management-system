@@ -4,6 +4,20 @@ from django.contrib.auth.models import User
 from project_app.models import Project
 # Create your models here.
 
+STATUS_CHOICES = [
+    ('Backlog','Backlog'),
+    ('To Do', 'To Do'),
+    ('In Progress', 'In Progress'),
+    ('Completed', 'Completed'),
+]
+
+
+PRIORITY_CHOICES = [
+    ('Low', 'Low'),
+    ('Medium', 'Medium'),
+    ('High', 'High'),
+]
+
 class TaskQueryset(models.QuerySet):
     def active(self):
         return self.filter(active=True)
@@ -23,8 +37,8 @@ class Task(models.Model):
     name = models.CharField(max_length=20)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tasks')
     description = models.TextField()
-    status = models.CharField(max_length=20, choices=[('To Do','To Do'),('In Progress','In Progress'),('Completed','Completed')], default='To Do')
-    priority = models.CharField(max_length=20, choices=[('Low','Low'),('Medium','Medium'),('High','High')], default='Medium')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Backlog')
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='Medium')
     start_date = models.DateField()
     due_date = models.DateField()
     active = models.BooleanField(default=True)

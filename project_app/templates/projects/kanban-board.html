@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block title %}{{title}} | {{block.super}}{% endblock %}
+{% load static %}
+{% block page_css %}
+<!-- Ekko Lightbox -->
+  <link rel="stylesheet" href="{% static 'plugins/ekko-lightbox/ekko-lightbox.css' %}">
+  <style>
+    .task-card{
+        cursor:grab;
+    }
+  </style>
+  {% endblock %}
+{% block content %}
+<div class="container-fluid h-100">
+        <div class="card card-row card-secondary board-column">
+          <div class="card-header">
+            <h3 class="card-title">
+              Backlog
+            </h3>
+          </div>
+          <div class="card-body task-list">
+            {% for task in backlog_tasks %}
+            <div class="card card-info card-outline task-card" data-task-id="{{task.id}}">
+              <div class="card-header">
+                <h5 class="card-title">{{task.name}}</h5>
+                <div class="card-tools">
+                  <a href="#" class="btn btn-tool btn-link">#{{forloop.counter}}</a>
+                  <a href="#" class="btn btn-tool">
+                    <i class="fas fa-pen"></i>
+                  </a>
+                </div>
+              </div>
+              
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="card card-row card-primary board-column">
+          <div class="card-header">
+            <h3 class="card-title">
+              To Do
+            </h3>
+          </div>
+          <div class="card-body task-list">
+            {% for task in todo_tasks %}
+            <div class="card card-primary card-outline task-card" data-task-id="{{task.id}}">
+              <div class="card-header">
+                <h5 class="card-title">{{task.name}}</h5>
+                <div class="card-tools">
+                  <a href="#" class="btn btn-tool btn-link">#{{forloop.counter}}</a>
+                  <a href="#" class="btn btn-tool">
+                    <i class="fas fa-pen"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="card card-row card-default board-column">
+          <div class="card-header bg-info">
+            <h3 class="card-title">
+              In Progress
+            </h3>
+          </div>
+          <div class="card-body task-list">
+            {% for task in inprogress_tasks %}
+            <div class="card card-light card-outline task-card" data-task-id="{{task.id}}">
+              <div class="card-header">
+                <h5 class="card-title">{{task.name}}</h5>
+                <div class="card-tools">
+                  <a href="#" class="btn btn-tool btn-link">#{{forloop.counter}}</a>
+                  <a href="#" class="btn btn-tool">
+                    <i class="fas fa-pen"></i>
+                  </a>
+                </div>
+              </div>
+              <div class="card-body">
+                <p>
+                 {{task.description}}
+                </p>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="card card-row card-success board-column">
+          <div class="card-header">
+            <h3 class="card-title">
+              Done
+            </h3>
+          </div>
+          <div class="card-body task-list">
+            {% for task in completed_tasks %}
+            <div class="card card-primary card-outline task-card" data-task-id="{{task.id}}">
+              <div class="card-header">
+                <h5 class="card-title">{{task.name}}</h5>
+                <div class="card-tools">
+                  <a href="#" class="btn btn-tool btn-link">#{{forloop.counter}}</a>
+                  <a href="#" class="btn btn-tool">
+                    <i class="fas fa-pen"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+{% endblock %}
+
+{% block script %}
+<script>
+    document.addEventListener('DOMContentLoaded',function(){
+        const taskCards = document.querySelectorAll('.task-card')
+        taskCards.forEach(card =>{
+            card.draggable = true
+
+        card.addEventListener('dragstart',(e)=>{
+            e.dataTransfer.setData('text/plain',card.dataset.taskId);
+            console.log(card.dataset)
+        })
+        })
+        const columns = document.querySelectorAll('.board-column')
+        columns.forEach(column=>{
+            column.addEventListener('dragover',(e)=>{
+                e.preventDefault()
+
+                column.addEventListener('drop',(e)=>{
+                    const taskId = e.dataTransfer.getData('text/plain');
+                    const taskCard = document.querySelector(`[data-task-id="${taskId}"]`)
+                    
+                    column.querySelector('.task-list').prepend(taskCard)
+                })
+            })
+        })
+    })
+</script>
+{% endblock %}
