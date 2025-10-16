@@ -8,23 +8,35 @@
     .task-card{
         cursor:grab;
     }
+    .form-group{
+      display: flex;
+    }
+    #backlog h3{
+      margin: 10px;
+    }
   </style>
   {% endblock %}
 {% block content %}
 <div class="container-fluid h-100">
-        <div class="card card-row card-secondary board-column">
+        <div class="card card-row card-secondary board-column" id="backlog">
           <div class="card-header">
             <h3 class="card-title">
               Backlog
             </h3>
+            <form action="{% url 'tasks:create_task_ajax' %}" id="create-task-form" data-project-id="{{project.id}}" method="post">
+             {% csrf_token %}
+              <div class="form-group">
+                <input type="text" id="task-name" name="project_name" class="form-control task-input" placeholder="New Task">
+              </div>
+            </form>
           </div>
           <div class="card-body task-list">
             {% for task in backlog_tasks %}
-            <div class="card card-info card-outline task-card" data-task-id="{{task.id}}">
+            <div class="card card-secondary card-outline task-card" data-task-id="{{task.id}}">
               <div class="card-header">
                 <h5 class="card-title">{{task.name}}</h5>
                 <div class="card-tools">
-                  <a href="#" class="btn btn-tool btn-link">#{{forloop.counter}}</a>
+                  <a href="#" class="btn btn-tool btn-link task-counter"></a>
                   <a href="#" class="btn btn-tool">
                     <i class="fas fa-pen"></i>
                   </a>
@@ -35,7 +47,7 @@
             {% endfor %}
           </div>
         </div>
-        <div class="card card-row card-primary board-column">
+        <div class="card card-row card-primary board-column" id="to-do">
           <div class="card-header">
             <h3 class="card-title">
               To Do
@@ -57,7 +69,7 @@
             {% endfor %}
           </div>
         </div>
-        <div class="card card-row card-default board-column">
+        <div class="card card-row card-default board-column" id="in-progress">
           <div class="card-header bg-info">
             <h3 class="card-title">
               In Progress
@@ -65,7 +77,7 @@
           </div>
           <div class="card-body task-list">
             {% for task in inprogress_tasks %}
-            <div class="card card-light card-outline task-card" data-task-id="{{task.id}}">
+            <div class="card card-primary card-outline task-card" data-task-id="{{task.id}}">
               <div class="card-header">
                 <h5 class="card-title">{{task.name}}</h5>
                 <div class="card-tools">
@@ -84,7 +96,7 @@
             {% endfor %}
           </div>
         </div>
-        <div class="card card-row card-success board-column">
+        <div class="card card-row card-success board-column" id="completed">
           <div class="card-header">
             <h3 class="card-title">
               Done
@@ -92,7 +104,7 @@
           </div>
           <div class="card-body task-list">
             {% for task in completed_tasks %}
-            <div class="card card-primary card-outline task-card" data-task-id="{{task.id}}">
+            <div class="card card-success card-outline task-card" data-task-id="{{task.id}}">
               <div class="card-header">
                 <h5 class="card-title">{{task.name}}</h5>
                 <div class="card-tools">
@@ -129,11 +141,129 @@
                 column.addEventListener('drop',(e)=>{
                     const taskId = e.dataTransfer.getData('text/plain');
                     const taskCard = document.querySelector(`[data-task-id="${taskId}"]`)
-                    
+                    //get new status
+                    const newStatus = column.id.replace('-', ' ');
+                    // move the task card to new column
                     column.querySelector('.task-list').prepend(taskCard)
+                    // update the class or column based on color
+                    taskCard.classList.remove('card-success','card-primary','card-default','card-secondary','card-light')
+                    if(column.id === 'backlog'){
+                      taskCard.classList.add('card-secondary')
+                    }else if(column.id === 'to-do'){
+                      taskCard.classList.add('card-primary')
+                    }else if(column.id === 'in-progress'){
+                      taskCard.classList.add('card-primary')
+                    }else if(column.id === 'completed'){
+                      taskCard.classList.add('card-success')
+                    }
+                    // send ajax request to update task status
+                    updateTaskStatus(taskId,newStatus)
                 })
             })
         })
+        // update status ajax
+        function updateTaskStatus(taskId,newStatus){
+          fetch(`/tasks/update_task_status_ajax/${taskId}/`,{
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({status: newStatus}),
+          })
+          .then(response=>response.json())
+          .then(data=>{
+            if(data.success){
+              console.log('Task updated')
+            }else{
+              console.error('Updating failed')
+            }
+          });
+        }
+        // submit form
+        const taskForm = document.getElementById('create-task-form');
+        const taskInput = document.getElementById('task-name');
+        const projectId = taskForm.getAttribute('data-project-id');
+        // get backlog
+        const BacklogColumn = document.getElementById('backlog')
+
+        if(taskForm && taskInput && projectId){
+          taskInput.addEventListener('keydown', function (event){
+            if (event.key === 'Enter'){
+              event.preventDefault()
+              const taskName = taskInput.value.trim();
+              if (taskName){
+                const formData = new FormData(taskForm)
+                formData.append('name',taskName)
+                formData.append('project_id',projectId)
+
+                fetch(taskForm.action,{
+                  method: taskForm.method,
+                  body: formData,
+                  headers:{
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                  }
+                })
+                .then(response => response.json())
+                .then(data => {
+                  if(data.success){
+                    console.log("Success",data.task_id)
+                    taskInput.value = '';
+                    // add task to column without refresh
+                    const newTaskCard = document.createElement('div')
+                    newTaskCard.classList.add('card', 'card-secondary', 'card-outline', 'task-card');
+                    newTaskCard.setAttribute('data-task-id',data.task_id)
+                    newTaskCard.draggable = true
+                    // add task content
+                    newTaskCard.innerHTML = `
+                    <div class="card-header">
+                <h5 class="card-title">${taskName}</h5>
+                <div class="card-tools">
+                  <a href="#" class="btn btn-tool btn-link task-counter"></a>
+                  <a href="#" class="btn btn-tool">
+                    <i class="fas fa-pen"></i>
+                  </a>
+                </div>
+              </div>
+                    `;
+                    // append the newly created task to the column
+                    const backlogTaskList = BacklogColumn.querySelector('.task-list')
+                    backlogTaskList.prepend(newTaskCard)
+                    // updating counter refresh
+                    updateTaskCounter()
+                    // addeventlistner for drag and drop
+                    newTaskCard.addEventListener('dragstart',(e)=>{
+                      e.dataTransfer.setData('text/plain',newTaskCard.dataset.taskId)
+
+                    })
+                  }else{
+                    console.error('Error: ',data.error)
+                  }
+                })
+                .catch(error => {
+                  console.log("Error creating task: ",error)
+                })
+              }else{
+                console.log("Task empty")
+              }
+            }
+          })
+        }else{
+          console.log("Project id, form, input not present")
+        }
+        // update counter
+        function updateTaskCounter(){
+          const taskCards = BacklogColumn.querySelectorAll('.task-card')
+          taskCards.forEach((card,index)=>{
+            const taskCounter = card.querySelector('.task-counter')
+            if(taskCounter){
+              taskCounter.textContent = `#${index+1}`
+            }
+          })
+        }
+        //calling update task counter on page load
+        updateTaskCounter();
     })
 </script>
 {% endblock %}
