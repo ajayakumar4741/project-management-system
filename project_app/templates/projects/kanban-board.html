@@ -119,6 +119,7 @@
           </div>
         </div>
       </div>
+      {% include 'tasks/task_update_modal.html' %}
 {% endblock %}
 
 {% block script %}
@@ -264,6 +265,35 @@
         }
         //calling update task counter on page load
         updateTaskCounter();
+        // edit the project with click the icon
+        const taskUpdateModal = document.getElementById('taskUpdateModal')
+        const editIcons = document.querySelectorAll('.fa-pen');
+        let currentTaskId = null
+        editIcons.forEach(icon => {
+          icon.addEventListener('click', function(event){
+            event.preventDefault();
+            // get task id
+            currentTaskId = this.closest('.task-card').dataset.taskId          
+            // open task update modal
+            $('#taskUpdateModal').modal('show')
+            // make ajax for fetching data
+            fetch(`tasks/${currentTaskId}/get_task/`,{
+              method: 'GET',
+              headers: {
+                'Content-Type':'application/json'
+              }
+            })
+            .then(response => response.json())
+            .then(data => {
+              if(data.error){
+                console.log(data.error)
+              }else{
+                task = data.task_data
+                console.log(task)
+              }
+            })
+          })
+        });
     })
 </script>
 {% endblock %}

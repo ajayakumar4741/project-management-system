@@ -38,3 +38,19 @@ def create_task_ajax(request):
         return JsonResponse({'success':True,'task_id':new_task.id})
     except Project.DoesNotExist:
         return JsonResponse({'success':False,'error':'Project not found'})
+    
+def get_task(request,task_id):
+    try:
+        task = Task.objects.get(id=task_id)
+    except Task.DoesNotExist:
+        return JsonResponse({'error':'Task not found'},status=404)
+    
+    if request.method == 'GET':
+        task_data = {
+            'id':str(task.id),
+            'name':task.name,
+            'description':task.description,
+            'start_date': task.start_date.isoformat() if task.start_date else '',
+            'due_date': task.due_date.isoformat() if task.due_date else '',
+        }
+        return JsonResponse({'task_data':task_data})
