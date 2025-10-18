@@ -9,12 +9,18 @@
               </button>
             </div>
             <div class="modal-body">
-              {{form|crispy}}
-            </div>
-            <div class="modal-footer justify-content-between">
+              <form id="taskUpdateForm">
+                {% csrf_token %}
+                <div id="task-form-body">
+                  {{form|crispy}}
+                </div>
+                <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary">Save changes</button>
+              <input type="submit" name="task_update" class="btn btn-primary">Save changes</input>
             </div>
+              </form>
+            </div>
+            
           </div>
           <!-- /.modal-content -->
         </div>

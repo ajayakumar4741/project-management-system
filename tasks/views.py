@@ -1,6 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
 import json
+from .forms import *
 from .models import *
 from django.http import JsonResponse
 from project_app.models import *
@@ -22,7 +23,7 @@ def update_task_status_ajax(request,task_id):
     
 @require_POST
 def create_task_ajax(request):
-    name = request.POST.get('project_name')
+    name = request.POST.get('name')
     project_id = request.POST.get('project_id')
     user = request.user
     
@@ -47,10 +48,29 @@ def get_task(request,task_id):
     
     if request.method == 'GET':
         task_data = {
-            'id':str(task.id),
+            'id':task.id,
             'name':task.name,
             'description':task.description,
             'start_date': task.start_date.isoformat() if task.start_date else '',
             'due_date': task.due_date.isoformat() if task.due_date else '',
         }
         return JsonResponse({'task_data':task_data})
+
+def update_task(request,task_id):
+    task = get_object_or_404(Task, id=task_id)
+    if request.method == 'POST':
+        form = TaskUpdateForm(request.POST,instance=task)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'success':True,
+                                 'task_data': {
+                                'id':task.id,
+                                'name':task.name,
+                                'description':task.description,
+                                'start_date': task.start_date.isoformat() if task.start_date else '',
+                                'due_date': task.due_date.isoformat() if task.due_date else '',
+                            }
+                                 })
+        else:
+            return JsonResponse({'success':False,'errors':form.errors})
+    return JsonResponse({'success':False,'error':'invalid request method'},status=405)

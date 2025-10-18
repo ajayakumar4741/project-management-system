@@ -26,7 +26,7 @@
             <form action="{% url 'tasks:create_task_ajax' %}" id="create-task-form" data-project-id="{{project.id}}" method="post">
              {% csrf_token %}
               <div class="form-group">
-                <input type="text" id="task-name" name="project_name" class="form-control task-input" placeholder="New Task">
+                <input type="text" id="task-name" name="name" class="form-control task-input" placeholder="New Task">
               </div>
             </form>
           </div>
@@ -275,9 +275,9 @@
             // get task id
             currentTaskId = this.closest('.task-card').dataset.taskId          
             // open task update modal
-            $('#taskUpdateModal').modal('show')
+            // $('#taskUpdateModal').modal('show')
             // make ajax for fetching data
-            fetch(`tasks/${currentTaskId}/get_task/`,{
+            fetch(`/tasks/${currentTaskId}/get/`,{
               method: 'GET',
               headers: {
                 'Content-Type':'application/json'
@@ -289,11 +289,20 @@
                 console.log(data.error)
               }else{
                 task = data.task_data
-                console.log(task)
+                taskUpdateModal.querySelector('input[name="task_id"]').value = task.id;
+                taskUpdateModal.querySelector('input[name="name"]').value = task.name;
+                taskUpdateModal.querySelector('textarea[name="description"]').value = task.description;
+                taskUpdateModal.querySelector('select[name="priority"]').value = task.priority;
+                taskUpdateModal.querySelector('input[name="start_date"]').value = task.start_date;
+                taskUpdateModal.querySelector('input[name="due_date"]').value = task.due_date;
+                $('#taskUpdateModal').modal('show')
               }
             })
+            .catch(error => console.error('Error fetching data:', error));
           })
         });
+        // updating task
+        
     })
 </script>
 {% endblock %}
