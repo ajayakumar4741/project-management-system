@@ -35,7 +35,7 @@ class TaskManager(models.Manager):
 
 class Task(models.Model):
     owner = models.ForeignKey(User, models.CASCADE, related_name='tasks')
-    name = models.CharField(max_length=20)
+    name = models.CharField(max_length=200)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tasks')
     description = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Backlog')

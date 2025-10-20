@@ -51,6 +51,7 @@ def get_task(request,task_id):
             'id':task.id,
             'name':task.name,
             'description':task.description,
+            'priority':task.priority,
             'start_date': task.start_date.isoformat() if task.start_date else '',
             'due_date': task.due_date.isoformat() if task.due_date else '',
         }
@@ -63,14 +64,15 @@ def update_task(request,task_id):
         if form.is_valid():
             form.save()
             return JsonResponse({'success':True,
-                                 'task_data': {
+                                 'updatedTask': {
                                 'id':task.id,
                                 'name':task.name,
                                 'description':task.description,
+                                'priority':task.priority,
                                 'start_date': task.start_date.isoformat() if task.start_date else '',
                                 'due_date': task.due_date.isoformat() if task.due_date else '',
                             }
                                  })
         else:
-            return JsonResponse({'success':False,'errors':form.errors})
+            return JsonResponse({'success':False,'error':form.errors})
     return JsonResponse({'success':False,'error':'invalid request method'},status=405)

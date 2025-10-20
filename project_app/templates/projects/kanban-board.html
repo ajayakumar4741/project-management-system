@@ -42,7 +42,15 @@
                   </a>
                 </div>
               </div>
-              
+
+              {% if task.description %}
+              <div class="card-body">
+                <p class="card-description">
+                  {{task.description}}
+                </p>
+              </div>
+              {% endif %}
+
             </div>
             {% endfor %}
           </div>
@@ -65,6 +73,13 @@
                   </a>
                 </div>
               </div>
+              {% if task.description %}
+              <div class="card-body">
+                <p class="card-description">
+                  {{task.description}}
+                </p>
+              </div>
+              {% endif %}
             </div>
             {% endfor %}
           </div>
@@ -87,11 +102,13 @@
                   </a>
                 </div>
               </div>
+              {% if task.description %}
               <div class="card-body">
-                <p>
-                 {{task.description}}
+                <p class="card-description">
+                  {{task.description}}
                 </p>
               </div>
+              {% endif %}
             </div>
             {% endfor %}
           </div>
@@ -114,6 +131,13 @@
                   </a>
                 </div>
               </div>
+              {% if task.description %}
+              <div class="card-body">
+                <p class="card-description">
+                  {{task.description}}
+                </p>
+              </div>
+              {% endif %}
             </div>
             {% endfor %}
           </div>
@@ -274,8 +298,7 @@
             event.preventDefault();
             // get task id
             currentTaskId = this.closest('.task-card').dataset.taskId          
-            // open task update modal
-            // $('#taskUpdateModal').modal('show')
+            
             // make ajax for fetching data
             fetch(`/tasks/${currentTaskId}/get/`,{
               method: 'GET',
@@ -302,7 +325,41 @@
           })
         });
         // updating task
-        
+        const form = document.getElementById('taskUpdateForm')
+        form.addEventListener('submit',function(event){
+          event.preventDefault();
+          const formData = new FormData(form);
+          fetch(`/tasks/${currentTaskId}/update/`,{
+            method: 'POST',
+            body: formData,
+            headers:{
+              'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+          })
+          .then(response => response.json())
+          .then(data => {
+            if(data.success){
+              document.querySelector(`.task-card[data-task-id='${currentTaskId}'] .card-title`).textContent = data.updatedTask.name;
+              document.querySelector(`.task-card[data-task-id='${currentTaskId}'] .card-description`).textContent = data.updatedTask.description;
+              // find taskcard
+              const taskCard = document.querySelector(`.task-card[data-task-id='${currentTaskId}']`)
+              // check if taskcard exists
+              if(taskCard){
+                taskCard.querySelector('.card-title').textContent = data.updatedTask.name;
+                // check if description exists
+                let descriptionElement = taskCard.querySelector('.card-description');
+                if(descriptionElement){
+                  descriptionElement.textContent = data.updatedTask.description
+                }
+              }
+              // hide task update modal
+            $('#taskUpdateModal').modal('hide')
+            }else{
+              console.log('error updating task: ',data.error)
+            }
+          })
+          .catch(error => console.error("Error: ",error))
+        })
     })
 </script>
 {% endblock %}
