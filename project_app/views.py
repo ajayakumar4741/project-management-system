@@ -1,5 +1,5 @@
 from django.shortcuts import redirect
-from django.views.generic import CreateView, ListView, DetailView
+from django.views.generic import CreateView, ListView, DetailView, DeleteView
 from django.urls import reverse_lazy
 from . models import *
 from . forms import *
@@ -40,6 +40,9 @@ class ProjectListView(ListView):
     template_name = 'projects/project_list.html'
     paginate_by = 5
     
+    def get_queryset(self):
+        return Project.objects.for_user(self.request.user)
+    
     def get_context_data(self, **kwargs):
         context = super(ProjectListView, self).get_context_data(**kwargs)
         latest_notifications = self.request.user.notifications.unread(self.request.user)            
@@ -48,7 +51,20 @@ class ProjectListView(ListView):
         context['header_text'] = 'Projects'
         context['title'] = 'All Projects'
         return context
+
+class ProjectDeleteView(DeleteView):
+    model = Project
+    template_name = 'projects/confirm_delete.html' 
+    success_url = reverse_lazy('projects:list')  
     
+    def get_context_data(self, **kwargs):
+        context = super(ProjectDeleteView, self).get_context_data(**kwargs)
+        latest_notifications = self.request.user.notifications.unread(self.request.user)            
+        context['latest_notifications'] = latest_notifications[:3]
+        context['notification_count'] = latest_notifications.count()
+        context['header_text'] = 'Delete Projects'
+        context['title'] = 'Delete Projects'
+        return context 
 
 class ProjectNearDueDateListView(ListView):
     model = Project
@@ -57,7 +73,7 @@ class ProjectNearDueDateListView(ListView):
     paginate_by = 5
     
     def get_queryset(self):
-        return Project.objects.all().due_in_two_days_or_less()
+        return Project.objects.for_user(self.request.user).due_in_two_days_or_less()
     
     def get_context_data(self, **kwargs):
         context = super(ProjectNearDueDateListView, self).get_context_data(**kwargs)
@@ -67,6 +83,8 @@ class ProjectNearDueDateListView(ListView):
         context['header_text'] = 'Due Projects'
         context['title'] = 'Due Projects'
         return context
+    
+    
     
 class ProjectDetailView(DetailView):
     model = Project

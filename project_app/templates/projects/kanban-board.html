@@ -17,7 +17,7 @@
   </style>
   {% endblock %}
 {% block content %}
-<div class="container-fluid h-100">
+<div class="container-fluid h-100" id="board-container">
         <div class="card card-row card-secondary board-column" id="backlog">
           <div class="card-header">
             <h3 class="card-title">
@@ -291,15 +291,21 @@
         updateTaskCounter();
         // edit the project with click the icon
         const taskUpdateModal = document.getElementById('taskUpdateModal')
-        const editIcons = document.querySelectorAll('.fa-pen');
         let currentTaskId = null
-        editIcons.forEach(icon => {
-          icon.addEventListener('click', function(event){
-            event.preventDefault();
-            // get task id
-            currentTaskId = this.closest('.task-card').dataset.taskId          
-            
-            // make ajax for fetching data
+        // handle click event pencil icon
+        const kanbanBoard = document.getElementById('board-container')
+        kanbanBoard.addEventListener('click',function(event){
+          if(event.target.closest('.fa-pen')){
+            const taskCard = event.target.closest('.task-card')
+            const taskId = taskCard.getAttribute('data-task-id');
+            // open modal
+            openTaskModal(taskId)
+          }
+        })
+        // open modal
+        function openTaskModal(taskId){
+          currentTaskId = taskId
+          // make ajax for fetching data
             fetch(`/tasks/${currentTaskId}/get/`,{
               method: 'GET',
               headers: {
@@ -322,8 +328,7 @@
               }
             })
             .catch(error => console.error('Error fetching data:', error));
-          })
-        });
+        }
         // updating task
         const form = document.getElementById('taskUpdateForm')
         form.addEventListener('submit',function(event){
@@ -350,7 +355,18 @@
                 let descriptionElement = taskCard.querySelector('.card-description');
                 if(descriptionElement){
                   descriptionElement.textContent = data.updatedTask.description
+                }else if(data.updatedTask.description){
+                  const cardBody = document.createElement('div')
+                  cardBody.classList.add('card-body')
+                  descriptionElement = document.createElement('p')
+                  descriptionElement.classList.add('card-description')
+                  descriptionElement.textContent = data.updatedTask.description
+                  // append to card body
+                  cardBody.appendChild(descriptionElement)
+                  taskCard.appendChild(cardBody)
                 }
+              }else{
+                console.log("Task card not found with task id",currentTaskId)
               }
               // hide task update modal
             $('#taskUpdateModal').modal('hide')

@@ -18,6 +18,10 @@ class ProjectQueryset(models.QuerySet):
         two_days_from_today = today + timedelta(days=2)
         return self.active().upcomming().filter(due_date__lte=two_days_from_today)
     
+    # users and team owned can see the projects in dashboard
+    def for_user(self,user):
+        return self.filter(models.Q(owner=user) | models.Q(team__members=user)).distinct()
+    
 class ProjectManager(models.Manager):
     def get_queryset(self):
         return ProjectQueryset(self.model, using=self._db)
@@ -27,6 +31,9 @@ class ProjectManager(models.Manager):
     
     def due_in_two_days_or_less(self):
         return self.get_queryset().active().upcomming().due_in_two_days_or_less()
+    
+    def for_user(self,user):
+        return self.get_queryset().active().upcomming().for_user(user)
 
 class Project(models.Model):
     owner = models.ForeignKey(User, models.CASCADE, related_name='projects')
