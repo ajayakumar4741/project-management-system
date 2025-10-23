@@ -1,5 +1,6 @@
-from django.shortcuts import redirect
-from django.views.generic import CreateView, ListView, DetailView, DeleteView
+from django.shortcuts import redirect, get_object_or_404
+from django.http import Http404
+from django.views.generic import CreateView, ListView, DetailView, DeleteView, UpdateView
 from django.urls import reverse_lazy
 from . models import *
 from . forms import *
@@ -33,6 +34,39 @@ class ProjectCreateView(CreateView):
         verb = f'New project assigned, {project.name}'
         create_notification.delay(actor_username=actor_username, verb=verb,  object_id=project.id)
         return redirect(self.success_url)
+    
+class ProjectUpdateView(UpdateView):
+    model = Project
+    template_name = 'projects/project_update.html'
+    form_class = ProjectForm
+    
+    
+    # check the user permission to update project
+    def get_object(self,queryset=None):
+        project = get_object_or_404(Project, pk=self.kwargs['pk'])
+        if project.owner != self.request.user:
+            raise Http404("Owner can only be update this project...")
+        return project
+    
+    def get_context_data(self, **kwargs):
+        context = super(ProjectUpdateView, self).get_context_data(**kwargs)
+        latest_notifications = self.request.user.notifications.unread(self.request.user)            
+        context['latest_notifications'] = latest_notifications[:3]
+        context['notification_count'] = latest_notifications.count()
+        context['header_text'] = 'Project Update'
+        context['title'] = 'Project Update'
+        return context
+    
+    def form_valid(self,form):
+        messages.success(self.request,'Project updated successfully...')
+        return super().form_valid(form)
+    
+    def form_invalid(self,form):
+        messages.error(self.request,'Project does not updated...')
+        return super().form_invalid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('projects:project-detail', kwargs={'pk':self.object.pk})
 
 class ProjectListView(ListView):
     model = Project
@@ -65,6 +99,14 @@ class ProjectDeleteView(DeleteView):
         context['header_text'] = 'Delete Projects'
         context['title'] = 'Delete Projects'
         return context 
+    # check the user has delete permission
+    def post(self,request,*args,**kwargs):
+        project = self.get_object()
+        if request.user != project.owner:
+            messages.warning(request,'Only owner can delete this project...')
+            return redirect('projects:project-detail',pk=project.pk)
+        messages.success(request,f'{project.name} was deleted successfully...')
+        return super().post(request,*args,**kwargs)
 
 class ProjectNearDueDateListView(ListView):
     model = Project
