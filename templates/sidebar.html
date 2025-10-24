@@ -15,7 +15,7 @@
           <img src="{{request.user.profile.profile_picture_url}}" class="img-circle elevation-2" alt="User Image">
         </div>
         <div class="info">
-          <a href="{% static './pages/examples/profile.html' %}" class="d-block">{{request.user.profile.full_name}}</a>
+          <a href="{% url 'accounts:user-profile' request.user.profile.pk %}" class="d-block">{{request.user.profile.full_name}}</a>
         </div>
       </div>
 
@@ -81,13 +81,13 @@
                 </a>
                 <ul class="nav nav-treeview">
                   <li class="nav-item">
-                    <a href="{% static './pages/examples/tasks.html' %}" class="nav-link">
+                    <a href="{% static 'pages/examples/tasks.html' %}" class="nav-link">
                       <i class="far fa-circle nav-icon"></i>
                       <p>All Teams</p>
                     </a>
                   </li>
                   <li class="nav-item">
-                    <a href="{% static './pages/examples/task-add.html' %}" class="nav-link">
+                    <a href="{% static 'pages/examples/task-add.html' %}" class="nav-link">
                       <i class="far fa-circle nav-icon"></i>
                       <p>Add Team</p>
                     </a>

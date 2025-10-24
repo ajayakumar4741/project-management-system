@@ -40,6 +40,9 @@
                   <a href="#" class="btn btn-tool">
                     <i class="fas fa-pen"></i>
                   </a>
+                  <a href="#" class="btn btn-tool">
+                    <i class="fas fa-user-plus"></i>
+                  </a>
                 </div>
               </div>
 
@@ -71,6 +74,9 @@
                   <a href="#" class="btn btn-tool">
                     <i class="fas fa-pen"></i>
                   </a>
+                  <a href="#" class="btn btn-tool">
+                    <i class="fas fa-user-plus"></i>
+                  </a>
                 </div>
               </div>
               {% if task.description %}
@@ -99,6 +105,9 @@
                   <a href="#" class="btn btn-tool btn-link">#{{forloop.counter}}</a>
                   <a href="#" class="btn btn-tool">
                     <i class="fas fa-pen"></i>
+                  </a>
+                  <a href="#" class="btn btn-tool">
+                    <i class="fas fa-user-plus"></i>
                   </a>
                 </div>
               </div>
@@ -129,6 +138,9 @@
                   <a href="#" class="btn btn-tool">
                     <i class="fas fa-pen"></i>
                   </a>
+                  <a href="#" class="btn btn-tool">
+                    <i class="fas fa-user-plus"></i>
+                  </a>
                 </div>
               </div>
               {% if task.description %}
@@ -144,6 +156,7 @@
         </div>
       </div>
       {% include 'tasks/task_update_modal.html' %}
+      {% include 'tasks/task_assigned.html' %}
 {% endblock %}
 
 {% block script %}
@@ -249,6 +262,9 @@
                   <a href="#" class="btn btn-tool">
                     <i class="fas fa-pen"></i>
                   </a>
+                  <a href="#" class="btn btn-tool">
+                    <i class="fas fa-user-plus"></i>
+                  </a>
                 </div>
               </div>
                     `;
@@ -278,7 +294,7 @@
           console.log("Project id, form, input not present")
         }
         // update counter
-        function updateTaskCounter(){
+        function updateTaskCounter(){          
           const taskCards = BacklogColumn.querySelectorAll('.task-card')
           taskCards.forEach((card,index)=>{
             const taskCounter = card.querySelector('.task-counter')
@@ -293,15 +309,34 @@
         const taskUpdateModal = document.getElementById('taskUpdateModal')
         let currentTaskId = null
         // handle click event pencil icon
+        // const kanbanBoard = document.getElementById('board-container')
+        // kanbanBoard.addEventListener('click',function(event){
+        //   if(event.target.closest('.fa-pen')){
+        //     const taskCard = event.target.closest('.task-card')
+        //     const taskId = taskCard.getAttribute('data-task-id');
+        //     // open modal
+        //     openTaskModal(taskId)
+        //   }
+        // })
         const kanbanBoard = document.getElementById('board-container')
         kanbanBoard.addEventListener('click',function(event){
-          if(event.target.closest('.fa-pen')){
+          const targetIcon = event.target.closest('i')
+          if(targetIcon){
             const taskCard = event.target.closest('.task-card')
             const taskId = taskCard.getAttribute('data-task-id');
-            // open modal
-            openTaskModal(taskId)
+            if(targetIcon.classList.contains('fa-user-plus')){
+              // open task assigned model
+              openTaskAssignModel()
+            }else if(targetIcon.classList.contains('fa-pen')){
+              // open modal
+              openTaskModal(taskId)
+            }
           }
+          
         })
+        function openTaskAssignModel(){
+          $('#taskAssignModal').modal('show')
+        }
         // open modal
         function openTaskModal(taskId){
           currentTaskId = taskId
@@ -318,7 +353,7 @@
                 console.log(data.error)
               }else{
                 task = data.task_data
-                taskUpdateModal.querySelector('input[name="task_id"]').value = task.id;
+                taskUpdateModal.querySelector('input[name="task_id"]').value = task.task_id;
                 taskUpdateModal.querySelector('input[name="name"]').value = task.name;
                 taskUpdateModal.querySelector('textarea[name="description"]').value = task.description;
                 taskUpdateModal.querySelector('select[name="priority"]').value = task.priority;

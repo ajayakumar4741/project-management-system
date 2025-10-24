@@ -9,7 +9,7 @@ from comment.models import Comment
 from django.core.paginator import Paginator
 from notifications.tasks import create_notification
 from django.contrib import messages
-from tasks.forms import TaskUpdateForm
+from tasks.forms import *
 
 class ProjectCreateView(CreateView):
     model = Project
@@ -213,4 +213,5 @@ class KanbanBoardView(DetailView):
         context['inprogress_tasks'] = project.tasks.filter(status='In Progress').upcomming()
         context['completed_tasks'] = project.tasks.filter(status='Completed').upcomming()
         context['form'] = TaskUpdateForm()
+        # context['task_form'] = TaskAssignForm()
         return context

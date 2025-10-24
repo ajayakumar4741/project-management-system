@@ -11,6 +11,8 @@ from phonenumber_field.modelfields import PhoneNumberField
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     profile_picture = models.ImageField(upload_to='', blank=True, null=True)
+    education = models.TextField(null=True,blank=True)
+    skills = models.TextField(null=True,blank=True)
     job_title = models.CharField(max_length=100,null=True)
     phone = PhoneNumberField(null=True,blank=True,unique=True)
     bio = models.TextField(blank=True)

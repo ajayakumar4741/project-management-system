@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
+from django.template.loader import render_to_string
 import json
 from .forms import *
 from .models import *
@@ -48,7 +49,7 @@ def get_task(request,task_id):
     
     if request.method == 'GET':
         task_data = {
-            'id':task.id,
+            'task_id':task.id,
             'name':task.name,
             'description':task.description,
             'priority':task.priority,
@@ -76,3 +77,21 @@ def update_task(request,task_id):
         else:
             return JsonResponse({'success':False,'error':form.errors})
     return JsonResponse({'success':False,'error':'invalid request method'},status=405)
+
+def assign_user_to_task(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    if request.method == 'POST':
+        form = TaskAssignForm(request.POST, instance=task)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'success':True})
+    else:
+        return JsonResponse({'success':False,'error':'Invalid request method...'})
+    
+def get_task_assign_form(request,task_id):
+    try:
+        task = Task.objects.get(id=task)
+        form = TaskAssignForm(initial={'task_id':task_id})
+        html = render_to_string('tasks/task_assign_form.html')
+    except Task.DoesNotExist:
+        return JsonResponse({'error':'Task not found'},status=405)

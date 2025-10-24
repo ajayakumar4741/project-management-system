@@ -26,16 +26,23 @@ class TaskQueryset(models.QuerySet):
     def upcomming(self):
         return self.filter(models.Q(due_date__gte=timezone.now()) | models.Q(due_date__isnull=True))
     
+    def for_user(self,user):
+        return self.filter(models.Q(owner=user) | models.Q(project__team__members=user)).distinct()
+    
 class TaskManager(models.Manager):
     def get_queryset(self):
         return TaskQueryset(self.model, using=self._db)
     
     def all(self):
         return self.get_queryset().active().upcomming()
+    
+    def for_user(self,user):
+        return self.get_queryset().active().upcomming().for_user(user)
 
 class Task(models.Model):
     owner = models.ForeignKey(User, models.CASCADE, related_name='tasks')
     name = models.CharField(max_length=200)
+    task_assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='assigned_tasks')
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='tasks')
     description = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Backlog')
