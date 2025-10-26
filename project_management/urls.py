@@ -24,6 +24,7 @@ urlpatterns = [
     path('', include('accounts.urls', namespace='accounts')),
     path('projects/', include('project_app.urls', namespace='projects')),
     path('tasks/', include('tasks.urls', namespace='tasks')),
+    path('teams/', include('teams.urls', namespace='teams')),
     path('notifications/', include('notifications.urls', namespace='notifications')),
     path('accounts/', include('django.contrib.auth.urls'))
 ] + static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

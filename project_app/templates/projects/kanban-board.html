@@ -40,9 +40,16 @@
                   <a href="#" class="btn btn-tool">
                     <i class="fas fa-pen"></i>
                   </a>
+                  
+
                   <a href="#" class="btn btn-tool">
                     <i class="fas fa-user-plus"></i>
                   </a>
+                  {% if task.task_assigned_to %}
+                  <a href="#">
+                    <img src="{{task.task_assigned_to.profile.profile_picture_url}}" height="20" width="20" class="img-circle elevation-2" alt="{{task.task_assigned_to.profile.full_name}}">
+                  </a>
+                  {% endif %}
                 </div>
               </div>
 
@@ -74,9 +81,15 @@
                   <a href="#" class="btn btn-tool">
                     <i class="fas fa-pen"></i>
                   </a>
+                  
                   <a href="#" class="btn btn-tool">
                     <i class="fas fa-user-plus"></i>
                   </a>
+                  {% if task.task_assigned_to %}
+                  <a href="#">
+                    <img src="{{task.task_assigned_to.profile.profile_picture_url}}" height="20" width="20" class="img-circle elevation-2" alt="{{task.task_assigned_to.profile.full_name}}">
+                  </a>
+                  {% endif %}
                 </div>
               </div>
               {% if task.description %}
@@ -106,9 +119,15 @@
                   <a href="#" class="btn btn-tool">
                     <i class="fas fa-pen"></i>
                   </a>
+                  
                   <a href="#" class="btn btn-tool">
                     <i class="fas fa-user-plus"></i>
                   </a>
+                  {% if task.task_assigned_to %}
+                  <a href="#">
+                    <img src="{{task.task_assigned_to.profile.profile_picture_url}}" height="20" width="20" class="img-circle elevation-2" alt="{{task.task_assigned_to.profile.full_name}}">
+                  </a>
+                  {% endif %}
                 </div>
               </div>
               {% if task.description %}
@@ -138,9 +157,15 @@
                   <a href="#" class="btn btn-tool">
                     <i class="fas fa-pen"></i>
                   </a>
+                  
                   <a href="#" class="btn btn-tool">
                     <i class="fas fa-user-plus"></i>
                   </a>
+                  {% if task.task_assigned_to %}
+                  <a href="#">
+                    <img src="{{task.task_assigned_to.profile.profile_picture_url}}" height="20" width="20" class="img-circle elevation-2" alt="{{task.task_assigned_to.profile.full_name}}">
+                  </a>
+                  {% endif %}
                 </div>
               </div>
               {% if task.description %}
@@ -326,7 +351,7 @@
             const taskId = taskCard.getAttribute('data-task-id');
             if(targetIcon.classList.contains('fa-user-plus')){
               // open task assigned model
-              openTaskAssignModel()
+              openTaskAssignModel(taskId)
             }else if(targetIcon.classList.contains('fa-pen')){
               // open modal
               openTaskModal(taskId)
@@ -334,8 +359,77 @@
           }
           
         })
-        function openTaskAssignModel(){
-          $('#taskAssignModal').modal('show')
+        function openTaskAssignModel(taskId){
+          fetch(`/tasks/${taskId}/assignment-form/`,{
+            method: 'GET',
+            headers:{
+              'Content-Type': 'application/json'
+            },
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.error){
+              console.error(data.error)
+            }else{
+              document.querySelector('#taskAssignModal .modal-body').innerHTML = data.html
+              $('#taskAssignModal').modal('show')
+              // calling the teamMemberAssignmentHandler for submitting the form
+              teamMemberAssignmentHandler()
+            }
+          })
+          .catch(error => console.error("Error fetching task assigned form",error))
+        }
+
+        function teamMemberAssignmentHandler(){
+          const assignmentForm = document.querySelector('#task-assignment-form')
+          if (assignmentForm){
+            assignmentForm.addEventListener('submit', function (e){
+              e.preventDefault()
+              const url = this.action;
+              const formData = new FormData(this);
+              const taskId = this.getAttribute('data-task-id')
+              fetch(url,{
+                method: 'POST',
+                body: formData,
+                headers: {
+                  'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+              })
+              .then(response => response.json())
+              .then(data => {
+                if(data.success){
+                  $('#taskAssignModal').modal('hide')
+                  // update task card
+                  const taskCard = document.querySelector(`.task-card[data-task-id="${taskId}"]`)
+                  if (taskCard){
+                    const toolsDiv = taskCard.querySelector('.card-tools')
+                    if (!toolsDiv){
+                      console.error('Tools div not exist')
+                      return;
+                    }
+                    // update or insert profile image
+                    const existingProfileImg = taskCard.querySelector('img');
+                    if (existingProfileImg){
+                      existingProfileImg.src = data.user.profile_picture_url
+                    }else{
+                      const imgHtml = `
+                      <a href="#">
+                    <img src="${data.user.profile_picture_url}" height="20" width="20" class="img-circle elevation-2" alt="${data.user.name}">
+                  </a>
+                      `
+                      // insert profile image in toolsdiv
+                      toolsDiv.insertAdjacentHTML('beforeend',imgHtml)
+                    }
+                  }
+                }else{
+                  alert('error: '+JSON.stringify(data.error))
+                }
+              })
+              .catch(error => console.error('error submiting form: ',error))
+            })
+          }else{
+            console.log('Assignment form not found')
+          }
         }
         // open modal
         function openTaskModal(taskId){

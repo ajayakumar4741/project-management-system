@@ -81,13 +81,13 @@
                 </a>
                 <ul class="nav nav-treeview">
                   <li class="nav-item">
-                    <a href="{% static 'pages/examples/tasks.html' %}" class="nav-link">
+                    <a href="{% url 'teams:team_list' %}" class="nav-link">
                       <i class="far fa-circle nav-icon"></i>
                       <p>All Teams</p>
                     </a>
                   </li>
                   <li class="nav-item">
-                    <a href="{% static 'pages/examples/task-add.html' %}" class="nav-link">
+                    <a href="{% url 'teams:create' %}" class="nav-link">
                       <i class="far fa-circle nav-icon"></i>
                       <p>Add Team</p>
                     </a>

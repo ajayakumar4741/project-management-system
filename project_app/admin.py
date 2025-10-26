@@ -16,7 +16,7 @@ class ProjectAdmin(admin.ModelAdmin):
         
         actor_username = request.user.username
         object_id = obj.id
-        create_notification.delay(actor_username=actor_username, verb=verb,  object_id=object_id)
+        create_notification.delay(actor_username=actor_username, verb=verb,  object_id=object_id, content_type_model='project', content_type_app_label='project_app')
        
 
 admin.site.register(Project,ProjectAdmin)

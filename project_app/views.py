@@ -32,7 +32,7 @@ class ProjectCreateView(CreateView):
         project.save()
         actor_username = self.request.user.username
         verb = f'New project assigned, {project.name}'
-        create_notification.delay(actor_username=actor_username, verb=verb,  object_id=project.id)
+        create_notification.delay(actor_username=actor_username, verb=verb,  object_id=project.id, content_type_model='project', content_type_app_label='project_app')
         return redirect(self.success_url)
     
 class ProjectUpdateView(UpdateView):

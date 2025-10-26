@@ -6,24 +6,38 @@ from .models import *
 from project_app.models import *
 
 @shared_task
-def create_notification(actor_username, verb,  object_id):
+def create_notification(actor_username, verb,  object_id, content_type_model, content_type_app_label):
     try:
         actor = User.objects.get(username=actor_username)
-        content_type = ContentType.objects.get_for_model(Project)
-        project = Project.objects.get(id=object_id)
-        members = project.team.members.exclude(id=project.owner.id)
-        for recipient in members:
+        content_type = ContentType.objects.get(model=content_type_model, app_label=content_type_app_label)
+        
+        content_object = content_type.get_object_for_this_type(id=object_id)
+        # determine reciepeints
+        if hasattr(content_object,'team') and hasattr(content_object.team, 'members'):
+            recipients = content_object.team.members.all()
+        else:
+            recipients = [content_object.task_assigned_to]
+            
+       
+        notification_ids = []
+        for recipient in recipients:
             notification = Notification.objects.create(reciepient=recipient,
             actor=actor,
             content_type=content_type,
             verb=verb,
-            content_object=project,
-            read=False)
-        return notification.verb
+            content_object=content_object,
+            read=False
+            )
+            notification_ids.append(notification.id)
+        return notification_ids
     except User.DoesNotExist:
         return None
     except ContentType.DoesNotExist:
         return None
+    except Project.DoesNotExist:
+        print(f"❌ Project with ID {object_id} not found.")
+        return None
+
     
 @shared_task
 def notify_teams_due_projects_tasks():
@@ -34,4 +48,4 @@ def notify_teams_due_projects_tasks():
         actor_username = project.owner.username
         members = project.team.members.all()
         for member in members:
-            create_notification.delay(actor_username=actor_username,verb=verb,object_id=project.id)
+            create_notification.delay(actor_username=actor_username,verb=verb,object_id=project.id,content_type_model='project',content_type_app_label='project_app')

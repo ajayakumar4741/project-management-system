@@ -7,6 +7,7 @@ urlpatterns = [
     path('update_task_status_ajax/<int:task_id>/', update_task_status_ajax, name='update_task_status_ajax'),
     path('create_task_ajax/', create_task_ajax, name='create_task_ajax'),
     path('<int:task_id>/get/', get_task, name='get_task'),
+    path('<int:task_id>/assignment-form/', get_task_assign_form, name='assignment-form'),
     path('<int:task_id>/assign_user/', assign_user_to_task, name='assign_user'),
     path('<int:task_id>/update/', update_task, name='update_task')
 ]

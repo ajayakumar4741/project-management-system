@@ -6,6 +6,7 @@ from .forms import *
 from .models import *
 from django.http import JsonResponse
 from project_app.models import *
+from notifications.tasks import *
 
 @require_POST
 def update_task_status_ajax(request,task_id):
@@ -83,15 +84,32 @@ def assign_user_to_task(request, task_id):
     if request.method == 'POST':
         form = TaskAssignForm(request.POST, instance=task)
         if form.is_valid():
-            form.save()
-            return JsonResponse({'success':True})
+            task=form.save()
+            # send notification to user
+            actor_username = request.user.username
+            task_user_profile = task.task_assigned_to.profile
+            verb = f'Dear {task_user_profile.full_name}, {task.name} assigned to you. Kindly finish as soon as possible...'
+            object_id = task.id
+            create_notification.delay(actor_username=actor_username, verb=verb,  object_id=object_id, content_type_model='task', content_type_app_label='tasks')
+            return JsonResponse({
+                'success':True,
+                'user':{
+                'id':task.task_assigned_to.id,
+                'name':task.task_assigned_to.profile.full_name,
+                'profile_picture_url':task.task_assigned_to.profile.profile_picture_url
+                }
+                })
     else:
-        return JsonResponse({'success':False,'error':'Invalid request method...'})
+        return JsonResponse({'success':False,'error':'Invalid request method...'},status=405)
     
 def get_task_assign_form(request,task_id):
     try:
-        task = Task.objects.get(id=task)
-        form = TaskAssignForm(initial={'task_id':task_id})
-        html = render_to_string('tasks/task_assign_form.html')
+        task = Task.objects.get(id=task_id)
+        form = TaskAssignForm(initial={
+            'task_id':task.id,
+            'task_assigned_to':task.task_assigned_to.id if task.task_assigned_to else None
+            })
+        html = render_to_string('tasks/task_assign_form.html',{'form':form,'task':task},request=request)
+        return JsonResponse({'html':html})
     except Task.DoesNotExist:
         return JsonResponse({'error':'Task not found'},status=405)
