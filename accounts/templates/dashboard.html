@@ -380,7 +380,7 @@
             <!-- PRODUCT LIST -->
             <div class="card">
               <div class="card-header">
-                <h3 class="card-title">Recently Added Tags</h3>
+                <h3 class="card-title">Recently Added Tasks</h3>
 
                 <div class="card-tools">
                   <button type="button" class="btn btn-tool" data-card-widget="collapse">
@@ -396,40 +396,28 @@
                 <ul class="products-list product-list-in-card pl-2 pr-2">
 
                   <!-- Tag Item -->
+                   {% for task in latest_tasks %}
                   <li class="item">
-                    <div class="product-img">
-                      <img src="{% static 'dist/img/default-150x150.png' %}" alt="Product Image" class="img-size-50">
+                    <div class="product-image">
+                      <img src="{{request.user.profile.profile_picture_url}}" alt="User Profile Pic" height="30" width="30">
                     </div>
                     <div class="product-info">
-                      <a href="javascript:void(0)" class="product-title">Samsung TV
+                      <a href="" class="product-title">{{task.name}}
                         
                       <span class="product-description">
-                        Samsung 32" 1080p 60Hz LED Smart HDTV.
+                        {{task.description}}
                       </span>
                     </div>
                   </li>
+                  {% endfor %}
                   <!-- /.item -->
 
-                       <!-- Tag Item -->
-                       <li class="item">
-                        <div class="product-img">
-                          <img src="{% static 'dist/img/default-150x150.png' %}" alt="Product Image" class="img-size-50">
-                        </div>
-                        <div class="product-info">
-                          <a href="javascript:void(0)" class="product-title">Samsung TV
-                            
-                          <span class="product-description">
-                            LG 32" 1080p 60Hz LED Smart HDTV.
-                          </span>
-                        </div>
-                      </li>
-                      <!-- /.item -->
                  
                 </ul>
               </div>
               <!-- /.card-body -->
               <div class="card-footer text-center">
-                <a href="{% static './pages/tables/tags.html' %}" class="uppercase">View Projects and Tasks</a>
+                <a href="{% url 'accounts:user-profile' request.user.profile.id %}" class="uppercase">View Projects and Tasks</a>
               </div>
               <!-- /.card-footer -->
             </div>
