@@ -99,6 +99,7 @@ class ProjectDeleteView(DeleteView):
         context['header_text'] = 'Delete Projects'
         context['title'] = 'Delete Projects'
         return context 
+    
     # check the user has delete permission
     def post(self,request,*args,**kwargs):
         project = self.get_object()

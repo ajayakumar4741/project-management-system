@@ -1,4 +1,5 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
+from django.http import Http404
 from django.views.generic import *
 from .models import *
 from .forms import *
@@ -19,6 +20,8 @@ class TeamCreateView(CreateView):
         context['notification_count'] = latest_notifications.count()
         context['header_text'] = 'Team Add'
         context['title'] = 'Team Add'
+        context['button_text'] = 'Create Team'
+        context['card_title'] = 'Create Teams'
         return context
     
     def form_valid(self,form):
@@ -60,5 +63,69 @@ class TeamListView(ListView):
             user_teams = teams.distinct()
         
         return user_teams
+    
+class TeamUpdateView(UpdateView):
+    model = Team
+    form_class = TeamForm
+    template_name = 'create_team.html'
+    
+    # check the user permission to update team
+    def get_object(self,queryset=None):
+        team = get_object_or_404(Team, pk=self.kwargs['pk'])
+        if team.created_by != self.request.user:
+            raise Http404("Owner can only be update this team...")
+        return team
+    
+    def get_context_data(self, **kwargs):
+        context = super(TeamUpdateView, self).get_context_data(**kwargs)
+        latest_notifications = self.request.user.notifications.unread(self.request.user)            
+        context['latest_notifications'] = latest_notifications[:3]
+        context['notification_count'] = latest_notifications.count()
+        context['header_text'] = 'Team Update'
+        context['title'] = 'Team Update'
+        context['button_text'] = 'Update Team'
+        context['card_title'] = 'Update Teams'
+        return context
+    
+    def form_valid(self,form):
+        messages.success(self.request,'Team updated successfully...')
+        return super().form_valid(form)
+    
+    def form_invalid(self,form):
+        messages.error(self.request,'Team does not updated...')
+        return super().form_invalid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('teams:team_list')
+    
+class TeamDeleteView(DeleteView):
+    model = Team
+    template_name = 'confirm_delete.html' 
+    success_url = reverse_lazy('teams:team_list') 
+    
+    # check the user permission to delete team
+    def get_object(self,queryset=None):
+        team = get_object_or_404(Team, pk=self.kwargs['pk'])
+        if team.created_by != self.request.user:
+            raise Http404("Owner can only be delete this team...")
+        return team 
+    
+    def get_context_data(self, **kwargs):
+        context = super(TeamDeleteView, self).get_context_data(**kwargs)
+        latest_notifications = self.request.user.notifications.unread(self.request.user)            
+        context['latest_notifications'] = latest_notifications[:3]
+        context['notification_count'] = latest_notifications.count()
+        context['header_text'] = 'Delete Teams'
+        context['title'] = 'Delete Teams'
+        return context 
+    
+    # to delete
+    def post(self,request,*args,**kwargs):
+        team = self.get_object()
+        
+        messages.success(request,f'{team.name} was deleted successfully...')
+        return super().post(request,*args,**kwargs)
+
+
     
     

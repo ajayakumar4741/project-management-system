@@ -60,12 +60,12 @@
                       
                       <td class="project-actions text-right">
                           {% if request.user == team.created_by %}
-                          <a class="btn btn-info btn-sm" href="">
+                          <a class="btn btn-info btn-sm" href="{% url 'teams:team_update' team.pk %}">
                               <i class="fas fa-pencil-alt">
                               </i>
                               Edit
                           </a>
-                          <a class="btn btn-danger btn-sm" href="">
+                          <a class="btn btn-danger btn-sm" href="{% url 'teams:team_delete' team.pk %}">
                               <i class="fas fa-trash">
                               </i>
                               Delete

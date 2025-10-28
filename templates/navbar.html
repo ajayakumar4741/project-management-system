@@ -7,11 +7,9 @@
         <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
       </li>
       <li class="nav-item d-none d-sm-inline-block">
-        <a href="dashboard.html" class="nav-link">Home</a>
+        <a href="{% url 'accounts:dashboard' %}" class="nav-link">Home</a>
       </li>
-      <li class="nav-item d-none d-sm-inline-block">
-        <a href="#" class="nav-link">Teams</a>
-      </li>
+      
     </ul>
 
     <!-- Right navbar links -->
@@ -69,10 +67,16 @@
           <span class="dropdown-item dropdown-header">Welcome {{request.user.profile.full_name}}</span>
           <div class="dropdown-divider"></div>
           
-          <a href="#" class="dropdown-item">
-            <i class="fas fa-cog mr-2"></i> Settings
+          <a href="{% url 'accounts:profile_update' request.user.profile.id %}" class="dropdown-item">
+            <i class="fas fa-cog mr-2"></i> Proflie Settings
             </a>
             <div class="dropdown-divider"></div>
+
+            <a href="{% url 'accounts:change_password' %}" class="dropdown-item">
+            <i class="fas fa-lock mr-2"></i> Change Password
+            </a>
+            <div class="dropdown-divider"></div>
+
             <form action="{% url 'logout' %}" method="post">
               {% csrf_token %}
           <button class="dropdown-item">

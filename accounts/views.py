@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.views.generic import View, ListView, DetailView
+from django.views.generic import *
 from django.core.paginator import Paginator
 from django.contrib.contenttypes.models  import ContentType
 from comment.models import Comment
@@ -10,6 +10,9 @@ from . models import Profile
 from teams.models import Team
 from django.contrib import messages
 from django.contrib.auth.decorators import login_not_required
+from django.contrib.auth.views import PasswordChangeView
+from django.urls import reverse_lazy,reverse
+
 
 @login_not_required
 def RegisterView(request):
@@ -24,6 +27,10 @@ def RegisterView(request):
     else:
         form = RegisterForm()
     return render(request, 'registration/register.html',{'form':form})
+
+class PasswordChangeView(PasswordChangeView):
+    template_name = 'registration/password_change_form.html'
+    success_url = reverse_lazy('password_change_done')
 
 class DashboardView(View):
     def get(self, request, *args, **kwargs):
@@ -118,7 +125,7 @@ class ProfileDetailView(DetailView):
         # user tasks
         user_tasks = Task.objects.for_user(profile.user)
         # pagination for user tasks
-        task_paginator = Paginator(user_tasks,1)
+        task_paginator = Paginator(user_tasks,5)
         task_page_number = self.request.GET.get('task_page')
         tasks = task_paginator.get_page(task_page_number)
         
@@ -130,3 +137,45 @@ class ProfileDetailView(DetailView):
         context['user_projects_count'] = user_projects.count()
         context['page_obj'] = page_obj
         return context
+    
+class ProfileUpdateView(UpdateView):
+    model = Profile
+    form_class = ProfileUpdateForm
+    template_name = 'profile_update.html'
+    
+    def get_success_url(self):
+        return reverse('accounts:user-profile',kwargs={'pk': self.request.user.profile.id})
+    
+    def get_context_data(self, **kwargs):
+        context = super(ProfileUpdateView, self).get_context_data(**kwargs)
+        latest_notifications = self.request.user.notifications.unread(self.request.user)            
+        context['latest_notifications'] = latest_notifications[:3]
+        context['notification_count'] = latest_notifications.count()
+        context['header_text'] = 'Update Profile'
+        context['title'] = 'Update Profile'
+        return context
+    
+class ProfileDeleteView(DeleteView):
+    model = User
+    template_name = 'profile_confirm_delete.html' 
+    
+    def get_success_url(self):
+        return reverse('accounts:register') 
+    
+    def get_context_data(self, **kwargs):
+        context = super(ProfileDeleteView, self).get_context_data(**kwargs)
+        latest_notifications = self.request.user.notifications.unread(self.request.user)            
+        context['latest_notifications'] = latest_notifications[:3]
+        context['notification_count'] = latest_notifications.count()
+        context['header_text'] = 'Delete Profile'
+        context['title'] = 'Delete Proflie'
+        return context 
+    
+    # check the user has delete permission
+    def post(self,request,*args,**kwargs):
+        profile = self.get_object()
+        if request.user != profile:
+            messages.warning(request,'You have no permission to delete another user...')
+            return redirect('accounts:user-profile',pk=request.user.profile.id)
+        messages.success(request,f'{request.user.profile.full_name} was deleted successfully...')
+        return super().post(request,*args,**kwargs)

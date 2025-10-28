@@ -10,7 +10,7 @@
           <!-- {{form.as_p}} -->
            <div class="card card-primary">
             <div class="card-header">
-              <h3 class="card-title">Create Teams</h3>
+              <h3 class="card-title">{{card_title}}</h3>
 
               <div class="card-tools">
                 <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
@@ -52,8 +52,8 @@
         </div>
           <div class="row">
         <div class="col-6">
-          <a href="#" class="btn btn-secondary">Cancel</a>
-          <input type="submit" value="Create Team" class="btn btn-success float-right">
+          <a href="{% url 'teams:team_list' %}" class="btn btn-secondary">Cancel</a>
+          <input type="submit" value="{{button_text}}" class="btn btn-success float-right">
         </div>
       </div>
       </div>
